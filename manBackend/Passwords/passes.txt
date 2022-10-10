@@ -14,3 +14,5 @@
 {"Key":"sontaksla","Value":"109 121 80 97 115 115 48"}
 {"Key":"sontaksla","Value":"109 121 80 97 115 115 49"}
 {"Key":"sontaksla","Value":"109 121 80 97 115 115 50"}
+{"Key":"asdLOGIN","Value":"97 115 100 80"}
+{"Key":"asd","Value":"97 115 100"}

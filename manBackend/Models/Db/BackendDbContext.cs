@@ -11,6 +11,7 @@ namespace manBackend.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<User>().HasOne(i => i.Mail);
         }
 
         public DbSet<User> Users { get; set; }

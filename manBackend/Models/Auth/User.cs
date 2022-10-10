@@ -11,6 +11,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
 using System.Net;
+using System.IO.Pipes;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 
 namespace manBackend.Models.Auth
 {
@@ -24,7 +26,7 @@ namespace manBackend.Models.Auth
         [Check]
         public string Login { get; set; }
         [Check]
-        public string EmailAddress { get; set; }
+        public Email Mail { get; set; }
         /// <summary>
         /// Encrypted password
         /// </summary>
@@ -36,7 +38,7 @@ namespace manBackend.Models.Auth
         public User()
         {
         }
-        public unsafe User(string userName, string login, string address) 
+        public User(string userName, string login, string address) 
         {
             if (!MailAddress.TryCreate(address, out MailAddress result))
                 throw new ArgumentException(nameof(address) + " has to be correct mail format");
@@ -45,7 +47,7 @@ namespace manBackend.Models.Auth
             if (string.IsNullOrEmpty(userName))
                 throw new ArgumentException(nameof(userName) + " has to be correct format");
 
-            EmailAddress = result.Address;
+            Mail = new Email(result.Address);
             UserName = userName;
             Login = login;
 
@@ -57,30 +59,13 @@ namespace manBackend.Models.Auth
         public unsafe User(string userName, string login, string address, char* ptr, int length) 
             : this(userName, login, address)
         {
-            if (string.IsNullOrEmpty(ptr->ToString()))
-                throw new ArgumentNullException("Password has to be correct format");
-
-            byte[] bytes = new byte[length];
-
-            for (int i = 0; i < length; i++)
-            {
-                bytes[i] = (byte)*ptr;
-                ptr++;
-            }
-
-            byte[] hashBytes = SHA256.HashData(bytes);
-
             StringBuilder sb = new StringBuilder(length);
-
-            foreach (var byte_ in hashBytes)
+            for (int i = 0; i < length; i++, ptr++)
             {
-                sb.Append(byte_.ToString("x2")); // (hexadecimal)
+                sb.Append(*ptr);
             }
-            Password = sb.ToString();
 
-            // saving real password as bytes
-            var savePass = SavePasswordAsync(bytes, login);
-
+            SavePasswordAsync(sb.ToString());
         }
         /// <summary>
         /// Just saving in /Passwords/passes
@@ -88,15 +73,35 @@ namespace manBackend.Models.Auth
         /// <param name="source"></param>
         /// <param name="login"></param>
         /// <returns></returns>
-        private async Task SavePasswordAsync(byte[] source, string login) 
+        public Task SavePasswordAsync(string password) => 
+            SavePasswordAsync(password, true);
+        private async Task SavePasswordAsync(string password, bool append) 
         {
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentNullException("Password has to be correct format");
+
+            byte[] bytes = Encoding.UTF8.GetBytes(password);
+
+            byte[] hashBytes = SHA256.HashData(bytes);
+
+            StringBuilder sb = new StringBuilder(hashBytes.Length);
+
+            foreach (var byte_ in hashBytes)
+            {
+                sb.Append(byte_.ToString("x2")); // (hexadecimal)
+            }
+
+            Password = sb.ToString();
+
+            Console.WriteLine(Environment.CurrentDirectory);
+
             string path = Environment.CurrentDirectory + "/Passwords/passes.txt";
 
             string json = JsonConvert.SerializeObject(
-                new KeyValuePair<string, string>(login, string.Join(' ', source))
+                new KeyValuePair<string, string>(Login, string.Join(' ', bytes))
                 );
 
-            using (StreamWriter sw = new StreamWriter(path, true)) 
+            using (StreamWriter sw = new StreamWriter(path, append))
             {
                 await sw.WriteLineAsync(json);
 
@@ -125,6 +130,21 @@ namespace manBackend.Models.Auth
         public static bool operator !=(User left, User right)
         {
             return !left.Equals(right);
+        }
+        /// <summary>
+        /// For simplicity in if statements
+        /// <code>
+        /// if(<paramref name="user"/>) {}
+        /// </code>
+        /// Instead of 
+        /// <code>
+        /// if(<paramref name="user"/> != null) {}
+        /// </code>
+        /// </summary>
+        /// <param name="user"></param>
+        public static implicit operator bool(User user) 
+        {
+            return user != null;
         }
     }
 }

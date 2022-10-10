@@ -1,9 +1,16 @@
 ﻿using manBackend.Models;
 using manBackend.Models.Attributes;
 using manBackend.Models.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
 
 namespace manBackend.Controllers
 {
@@ -12,23 +19,15 @@ namespace manBackend.Controllers
     public class TestController : ControllerBase
     {
         private readonly BackendDbContext backendDbContext;
-        public TestController(BackendDbContext backendDbContext)
+        private readonly IConfiguration configuration;
+        public TestController(BackendDbContext backendDbContext, IConfiguration configuration)
         {
             this.backendDbContext = backendDbContext;
+            this.configuration = configuration;
         }
         [HttpGet]
-        public unsafe void test() 
+        public unsafe void Test()
         {
-            for (int i = 0; i < 3; i++)
-            {
-                fixed (char* ptr = "myPass" + i.ToString())
-                {
-                    User user = new User("slawa", "sontaksla", "neget@gmail.com", ptr, 7);
-
-                    backendDbContext.Users.Add(user);
-                }
-            }
-            backendDbContext.SaveChanges();
         }
     }
 }
