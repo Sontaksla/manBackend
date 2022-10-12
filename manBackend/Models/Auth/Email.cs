@@ -24,6 +24,7 @@ namespace manBackend.Models.Auth
         {
             SmtpClient client = new SmtpClient("smtp.gmail.com", 587);
             client.Credentials = new NetworkCredential(config["Mail:UserName"], config["Mail:Password"]);
+            client.EnableSsl = true;
 
             int code = Random.Shared.Next();
 

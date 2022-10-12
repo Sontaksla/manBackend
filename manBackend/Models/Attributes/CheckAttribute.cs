@@ -57,7 +57,6 @@ namespace manBackend.Models.Attributes
 
                 }
             }
-            // just adding to the hashCode bitwise OR 
             return hashCode | 0b0000_0011_1010_0010_0110_1110_0011_1101;
         }
     }

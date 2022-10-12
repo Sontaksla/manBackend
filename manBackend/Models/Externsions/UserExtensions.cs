@@ -24,7 +24,7 @@ namespace manBackend.Models.Externsions
                 || Encoding.UTF8.GetBytes(user.Password).Length > user.Password.Length)
                 return new BadRequestObjectResult(user.Password);
 
-            return new OkObjectResult("");
+            return new OkObjectResult(user);
         }
     }
 }

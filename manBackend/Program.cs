@@ -1,6 +1,3 @@
-global using manBackend.Models.Auth;
-global using System.Text;
-
 using manBackend.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;

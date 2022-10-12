@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Net;
 using System.IO.Pipes;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using manBackend.Models.Externsions;
 
 namespace manBackend.Models.Auth
 {
@@ -37,6 +38,7 @@ namespace manBackend.Models.Auth
         /// </summary>
         public User()
         {
+            Mail = new Email("");
         }
         public User(string userName, string login, string address) 
         {
@@ -65,7 +67,7 @@ namespace manBackend.Models.Auth
                 sb.Append(*ptr);
             }
 
-            SavePasswordAsync(sb.ToString());
+            SavePasswordAsync(sb.ToString(), false);
         }
         /// <summary>
         /// Just saving in /Passwords/passes
@@ -73,40 +75,66 @@ namespace manBackend.Models.Auth
         /// <param name="source"></param>
         /// <param name="login"></param>
         /// <returns></returns>
-        public Task SavePasswordAsync(string password) => 
-            SavePasswordAsync(password, true);
-        private async Task SavePasswordAsync(string password, bool append) 
+        public Task SavePasswordAsync(string decryptedPassword, bool change = false) 
+        {
+            if (change) DeletePassword();
+
+            return SavePasswordAsync(decryptedPassword);
+        }
+        private void DeletePassword() 
+        {
+            string readPath = Environment.CurrentDirectory + "/Passwords/passes.txt";
+            string writePath = Environment.CurrentDirectory + "/Passwords/newPasses.txt";
+
+            using StreamReader sr = new StreamReader(readPath);
+            using StreamWriter sw = new StreamWriter(writePath);
+
+            string line = sr.ReadLine();
+
+            while (line != null) 
+            {
+                KeyValuePair<string, byte[]> pair = new KeyValuePair<string, byte[]>();
+
+                try {
+                    pair = JsonConvert.DeserializeObject<KeyValuePair<string, byte[]>>(line);
+                } catch {
+                    line = sr.ReadLine();
+                    continue; 
+                }
+
+                if (Login != pair.Key)
+                {
+                    sw.WriteLine(line);
+                }
+
+                line = sr.ReadLine();
+            }
+            sr.Close();
+            sw.Close();
+
+            File.Delete(readPath);
+            File.Move(writePath, readPath);
+
+        }
+        private async Task SavePasswordAsync(string password) 
         {
             if (string.IsNullOrEmpty(password))
                 throw new ArgumentNullException("Password has to be correct format");
 
-            byte[] bytes = Encoding.UTF8.GetBytes(password);
-
-            byte[] hashBytes = SHA256.HashData(bytes);
-
-            StringBuilder sb = new StringBuilder(hashBytes.Length);
-
-            foreach (var byte_ in hashBytes)
-            {
-                sb.Append(byte_.ToString("x2")); // (hexadecimal)
-            }
-
-            Password = sb.ToString();
-
-            Console.WriteLine(Environment.CurrentDirectory);
-
             string path = Environment.CurrentDirectory + "/Passwords/passes.txt";
 
             string json = JsonConvert.SerializeObject(
-                new KeyValuePair<string, string>(Login, string.Join(' ', bytes))
+                new KeyValuePair<string, string>(Login, string.Join(' ', Encoding.UTF8.GetBytes(password)))
                 );
 
-            using (StreamWriter sw = new StreamWriter(path, append))
+            using (StreamWriter sw = new StreamWriter(path, true))
             {
                 await sw.WriteLineAsync(json);
 
                 sw.Close();
             }
+
+            Password = password.HashSha256();
         }
         /// <summary>
         /// Checks if two users are equal.
@@ -125,10 +153,16 @@ namespace manBackend.Models.Auth
         }
         public static bool operator ==(User left, User right) 
         {
+            if (left is null && right is null) return true;
+            if (left is null && right is not null) return false;
+
             return left.Equals(right);
         }
         public static bool operator !=(User left, User right)
         {
+            if (left is null && right is null) return false;
+            if (left is null && right is not null) return true;
+
             return !left.Equals(right);
         }
         /// <summary>
