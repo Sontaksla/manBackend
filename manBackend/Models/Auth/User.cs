@@ -32,7 +32,7 @@ namespace manBackend.Models.Auth
         /// Encrypted password
         /// </summary>
 
-        public string Password { get; private set; }
+        public string Password { get; set; }
         /// <summary>
         /// Empty by default
         /// </summary>
