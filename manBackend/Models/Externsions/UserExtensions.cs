@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Net.Mail;
-using System.Text;
 
 namespace manBackend.Models.Externsions
 {

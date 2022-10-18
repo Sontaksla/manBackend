@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
-using System.Text;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO.Pipes;
@@ -28,6 +27,7 @@ namespace manBackend.Models.Auth
         public string Login { get; set; }
         [Check]
         public Email Mail { get; set; }
+        public List<Classroom> Rooms { get; set; }
         /// <summary>
         /// Encrypted password
         /// </summary>
@@ -143,7 +143,7 @@ namespace manBackend.Models.Auth
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            if (obj == null || obj is not User objAsUser) return false;
+            if (obj is not User objAsUser) return false;
 
             return CheckAttribute.Check<User>(this, objAsUser);
         }

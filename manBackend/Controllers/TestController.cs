@@ -26,7 +26,7 @@ namespace manBackend.Controllers
             this.configuration = configuration;
         }
         [HttpGet]
-        public unsafe void Test()
+        public void Test()
         {
         }
     }
