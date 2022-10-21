@@ -83,7 +83,8 @@ namespace manBackend.Controllers
         {
             if (user.Login.IsNullOrEmpty() || user.Login.Length < 4)
                 return BadRequest(user.Login);
-            if (user.Password.IsNullOrEmpty() || user.Password.Length < 4)
+            if (user.Password.IsNullOrEmpty() || user.Password.Length < 4 
+                || Encoding.UTF8.GetBytes(user.Password).Length > user.Password.Length)
                 return BadRequest(user.Password);
 
             string hashedPass = user.Password.HashSha256();
@@ -117,7 +118,7 @@ namespace manBackend.Controllers
 
             User user = _context.Users.Include(i => i.Mail).FirstOrDefault(i => i.Login == login.Value);
 
-            if (user == null) 
+            if (!user) 
             {
                 return BadRequest("Login error");
             }
