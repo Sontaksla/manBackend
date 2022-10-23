@@ -11,7 +11,7 @@ namespace manBackend.Models.Attributes
 
         }
         /// <summary>
-        /// Same is Equals, but for data types with <see cref="CheckAttribute"/> properties
+        /// Use for data types with <see cref="CheckAttribute"/> properties
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="left"></param>
@@ -57,7 +57,7 @@ namespace manBackend.Models.Attributes
 
                 }
             }
-            return hashCode | 0b0000_0011_1010_0010_0110_1110_0011_1101;
+            return hashCode | 0b0000_0101_1101_0010_1100_0001_0000_0011;
         }
     }
 }

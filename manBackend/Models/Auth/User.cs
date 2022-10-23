@@ -67,7 +67,8 @@ namespace manBackend.Models.Auth
                 sb.Append(*ptr);
             }
 
-            SavePasswordAsync(sb.ToString(), false);
+            // waiting for the task to end before getting out of constructor
+            SavePasswordAsync(sb.ToString(), false).Wait();
         }
         /// <summary>
         /// Just saving in /Passwords/passes
@@ -75,13 +76,16 @@ namespace manBackend.Models.Auth
         /// <param name="source"></param>
         /// <param name="login"></param>
         /// <returns></returns>
-        public Task SavePasswordAsync(string decryptedPassword, bool change = false) 
+        public async Task SavePasswordAsync(string decryptedPassword, bool change = false) 
         {
-            if (change) DeletePassword();
+            if (change) 
+            {
+                await DeletePassword(); 
+            }
 
-            return SavePasswordAsync(decryptedPassword);
+            await SavePassword(decryptedPassword);
         }
-        private void DeletePassword() 
+        private Task DeletePassword() 
         {
             string readPath = Environment.CurrentDirectory + "/Passwords/passes.txt";
             string writePath = Environment.CurrentDirectory + "/Passwords/newPasses.txt";
@@ -95,9 +99,14 @@ namespace manBackend.Models.Auth
             {
                 KeyValuePair<string, byte[]> pair = new KeyValuePair<string, byte[]>();
 
-                try {
-                    pair = JsonConvert.DeserializeObject<KeyValuePair<string, byte[]>>(line);
-                } catch {
+                try
+                {
+                    var newPair = JsonConvert.DeserializeObject<KeyValuePair<string, string>>(line);
+                    IEnumerable<byte> asBytes = newPair.Value.Split(' ').Select(i => byte.Parse(i));
+
+                    pair = new KeyValuePair<string, byte[]>(newPair.Key, asBytes.ToArray());
+                }
+                catch {
                     line = sr.ReadLine();
                     continue; 
                 }
@@ -115,8 +124,9 @@ namespace manBackend.Models.Auth
             File.Delete(readPath);
             File.Move(writePath, readPath);
 
+            return Task.CompletedTask;
         }
-        private async Task SavePasswordAsync(string password) 
+        private Task SavePassword(string password) 
         {
             if (string.IsNullOrEmpty(password))
                 throw new ArgumentNullException("Password has to be correct format");
@@ -129,12 +139,14 @@ namespace manBackend.Models.Auth
 
             using (StreamWriter sw = new StreamWriter(path, true))
             {
-                await sw.WriteLineAsync(json);
+                sw.WriteLine(json);
 
                 sw.Close();
             }
 
             Password = password.HashSha256();
+
+            return Task.CompletedTask;
         }
         /// <summary>
         /// Checks if two users are equal.

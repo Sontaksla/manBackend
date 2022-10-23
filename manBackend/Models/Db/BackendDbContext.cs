@@ -12,7 +12,6 @@ namespace manBackend.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasOne(i => i.Mail);
-
             modelBuilder.Entity<User>().HasMany(user => user.Rooms).WithOne();
 
             modelBuilder.Entity<Classroom>().HasMany(room => room.Students).WithOne();
