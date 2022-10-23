@@ -1,3 +1,0 @@
-{"Key":"MyLogin23","Value":"17 48 103 91"}
-{"Key":"MyLogin1","Value":"97 10 123 431"}
-{"Key":"MyLogin","Value":"97 115 100"}
