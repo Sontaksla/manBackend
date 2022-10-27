@@ -28,8 +28,6 @@ namespace manBackend.Controllers
         [HttpGet]
         public void Test()
         {
-
-
         }
     }
 }

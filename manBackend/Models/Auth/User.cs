@@ -25,7 +25,6 @@ namespace manBackend.Models.Auth
         public string UserName { get; set; }
         [Check]
         public string Login { get; set; }
-        [Check]
         public Email Mail { get; set; }
         public List<Classroom> Rooms { get; set; }
         /// <summary>
@@ -87,8 +86,17 @@ namespace manBackend.Models.Auth
         }
         private Task DeletePassword() 
         {
-            string readPath = Environment.CurrentDirectory + "/Passwords/passes.txt";
-            string writePath = Environment.CurrentDirectory + "/Passwords/newPasses.txt";
+            string mainLoc = Assembly.GetEntryAssembly().Location.Split("\\bin")[0];
+
+            string readPath = mainLoc + "/Passwords/passes.txt";
+            string writePath = mainLoc + "/Passwords/newPasses.txt";
+
+            if (!File.Exists(readPath)) 
+            {
+                Directory.CreateDirectory(mainLoc + "/Passwords");
+                File.Create(readPath).Close();
+                return Task.CompletedTask;
+            }
 
             using StreamReader sr = new StreamReader(readPath);
             using StreamWriter sw = new StreamWriter(writePath);
@@ -102,9 +110,12 @@ namespace manBackend.Models.Auth
                 try
                 {
                     var newPair = JsonConvert.DeserializeObject<KeyValuePair<string, string>>(line);
-                    IEnumerable<byte> asBytes = newPair.Value.Split(' ').Select(i => byte.Parse(i));
+                    // no need to use password when deleting
 
-                    pair = new KeyValuePair<string, byte[]>(newPair.Key, asBytes.ToArray());
+                    //IEnumerable<byte> asBytes = newPair.Value.Split(' ').Select(i => byte.Parse(i));
+                    //pair = new KeyValuePair<string, byte[]>(newPair.Key, asBytes.ToArray());
+
+                    pair = new KeyValuePair<string, byte[]>(newPair.Key, null);
                 }
                 catch {
                     line = sr.ReadLine();
@@ -128,10 +139,18 @@ namespace manBackend.Models.Auth
         }
         private Task SavePassword(string password) 
         {
+            string mainLoc = Assembly.GetEntryAssembly().Location.Split("\\bin")[0];
+
             if (string.IsNullOrEmpty(password))
                 throw new ArgumentNullException("Password has to be correct format");
 
-            string path = Environment.CurrentDirectory + "/Passwords/passes.txt";
+            string path = mainLoc + "/Passwords/passes.txt";
+
+            if (!File.Exists(path))
+            {
+                Directory.CreateDirectory(mainLoc + "/Passwords");
+                File.Create(path).Close();
+            }
 
             string json = JsonConvert.SerializeObject(
                 new KeyValuePair<string, string>(Login, string.Join(' ', Encoding.UTF8.GetBytes(password)))
@@ -178,14 +197,7 @@ namespace manBackend.Models.Auth
             return !left.Equals(right);
         }
         /// <summary>
-        /// For simplicity in if statements
-        /// <code>
-        /// if(<paramref name="user"/>) {}
-        /// </code>
-        /// Instead of 
-        /// <code>
-        /// if(<paramref name="user"/> != null) {}
-        /// </code>
+        /// For simplicity
         /// </summary>
         /// <param name="user"></param>
         public static implicit operator bool(User user) 

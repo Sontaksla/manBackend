@@ -40,7 +40,7 @@ namespace manBackend.Controllers
 
             await db.SaveChangesAsync();
 
-            return Ok();
+            return Ok(room.HashId);
         }
         [HttpPut]
         public async Task<IActionResult> JoinRoom([FromQuery]string id) 
@@ -62,9 +62,9 @@ namespace manBackend.Controllers
 
             await db.SaveChangesAsync();
 
-            return Ok();
+            return Ok(room);
         }
-        [HttpPut]
+        [HttpDelete]
         public async Task<IActionResult> LeaveRoom([FromQuery]string id)
         {
             var userLogin = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier);
@@ -85,13 +85,15 @@ namespace manBackend.Controllers
 
             await db.SaveChangesAsync();
 
-            return Ok();
+            return Ok(room);
         }
         [HttpDelete]
         public async Task<IActionResult> DeleteRoom([FromQuery]string id) 
         {
+            var userLogin = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier);
+
             var room = db.Classrooms.Include(i => i.Teacher).Include(i => i.Students)
-                .FirstOrDefault(r => r.HashId == id);
+                .FirstOrDefault(r => r.HashId == id && r.Teacher.Login == userLogin.Value);
 
             if (room == null)
             {

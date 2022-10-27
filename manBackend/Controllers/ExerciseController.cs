@@ -20,7 +20,7 @@ namespace manBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddExercise([FromForm]string roomId, [FromForm]Exercise exercise) 
         {
-            string userLogin = User.Claims.FirstOrDefault(c => c.ValueType == ClaimTypes.NameIdentifier).Value;
+            string userLogin = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
             var room = backendDbContext.Classrooms.Include(i => i.Teacher).Include(i => i.Exercises)
                 .FirstOrDefault(room => room.HashId == roomId && room.Teacher.Login == userLogin);
@@ -34,7 +34,7 @@ namespace manBackend.Controllers
 
             await backendDbContext.SaveChangesAsync();
 
-            return Ok();
+            return Ok(room);
         }
         [HttpPost]
         public async Task<IActionResult> RemoveExercise([FromForm]string roomId, [FromForm]Exercise exercise)
@@ -53,7 +53,7 @@ namespace manBackend.Controllers
 
             await backendDbContext.SaveChangesAsync();
 
-            return Ok();
+            return Ok(room);
         }
     }
 }

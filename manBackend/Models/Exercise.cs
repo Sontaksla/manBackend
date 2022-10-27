@@ -1,6 +1,7 @@
 ﻿using manBackend.Models.Attributes;
 using manBackend.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace manBackend.Models
 {
@@ -13,9 +14,10 @@ namespace manBackend.Models
         public string Title { get; set; }
         [Check]
         public string Description { get; set; }
-        [Check]
         public DateTime Expires { get; init; }
-
+        public Exercise()
+        {
+        }
         public override bool Equals(object obj)
         {
             if (obj is not Exercise exercise) return false;
